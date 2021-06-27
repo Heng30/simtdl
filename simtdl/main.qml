@@ -1,8 +1,8 @@
-import QtQml
-import QtQuick
-import QtQuick.Controls
-import QtQuick.Window
-import QtQuick.Layouts
+import QtQml 2.12
+import QtQuick 2.12
+import QtQuick.Controls 2.12
+import QtQuick.Window 2.12
+import QtQuick.Layouts 1.12
 
 Window {
     id: mainWindow
@@ -158,7 +158,7 @@ Window {
                 TextArea {
                     id: textarea
                     padding: 5
-                    focus: false
+                    focus: true
                     font.pixelSize: 24
                     selectionColor: "gray"
                     selectByMouse: true
@@ -216,13 +216,6 @@ Window {
                        isVisiable: false
                        isFinish: false
                     }
-
-//                    ListElement {
-//                       tdItem: "textarea.texttextarea.texttextarea.texttextarea.text"
-//                       BGcolor: "lightgreen"
-//                       isVisiable: true
-//                       isFinish: false
-//                    }
                 }
 
                 component HighlightBar: Rectangle {
@@ -296,12 +289,45 @@ Window {
                 }
             }
         }
+
+        Keys.onEscapePressed: {
+            mainWindow.hide()
+            mainWindow.requestActivate()
+        }
     }
+
+    Connections {
+        target: gsf
+        function onCtrlAlt4T() {
+            mainWindow.show()
+         }
+    }
+
+    Shortcut {
+         sequence: "Ctrl+Q"
+         context: Qt.ApplicationShortcut
+         onActivated: Qt.quit()
+    }
+
+    Shortcut {
+         sequence: "Ctrl+O"
+         context: Qt.ApplicationShortcut
+         onActivated: add()
+    }
+
+    Shortcut {
+         sequence: "Ctrl+S"
+         context: Qt.ApplicationShortcut
+         onActivated: add()
+    }
+
+    Component.onCompleted: restoretdl()
 
     function add() {
         if (textarea.text.length === 0) {
             inputLayout.visible = !inputLayout.visible
             if (inputLayout.visible) {
+                textarea.focus = true
                 inputLayoutBeHeight.enabled = true
                 inputLayout.height = 120
             } else {
@@ -315,10 +341,11 @@ Window {
                 "isVisiable": true,
                 "isFinish": false
             })
+
+            backuptdl()
         }
 
         textarea.clear()
-        textarea.focus = inputLayout.visible
     }
 
     function del() {
@@ -331,12 +358,14 @@ Window {
             listView.decrementCurrentIndex()
 
         listmodel.remove(oldIndex)
+        backuptdl()
     }
 
     function finish() {
         var index = listView.currentIndex
         if (index <= 0) return // padding item can't be deleted
         listmodel.set(index, { "isFinish": true } )
+        backuptdl()
     }
 
     function about() {
@@ -372,9 +401,37 @@ Window {
     }
 
     function delay(delayTime, cb) {
-        timer.interval = delayTime;
-        timer.repeat = false;
-        timer.triggered.connect(cb);
-        timer.start();
+        timer.interval = delayTime
+        timer.repeat = false
+        timer.triggered.connect(cb)
+        timer.start()
+    }
+
+    function backuptdl() {
+        var list = []
+
+        // skip the padding item
+        for (var i = 1; i < listmodel.count; i++) {
+            var item = listmodel.get(i)
+            list.push({
+                "tdItem": item.tdItem,
+                "BGcolor": item.BGcolor,
+                "isVisiable": item.isVisiable,
+                "isFinish": item.isFinish,
+            })
+        }
+
+        var json = JSON.stringify(list)
+        if (json.length <= 0) return
+        tdlbackup.write(json)
+    }
+
+    function restoretdl() {
+        var json = tdlbackup.read()
+        if (json.length <= 0) return
+        var list = JSON.parse(json)
+        for (var i = 0; i < list.length; i++) {
+            listmodel.append(list[i])
+        }
     }
 }

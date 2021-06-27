@@ -1,20 +1,48 @@
-QT += core quick
+QT += quick xml core gui widgets
 
+TARGET = simtdl
 CONFIG += c++11
+RC_ICONS = favicon.ico
 
-DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
+window {
+    DEFINES += Q_O_WINDOW
+}
 
-SOURCES += \
-        main.cpp
+linux {
+    QT += x11extras
+    LIBS += -lX11 -lxcb
+    DEFINES += Q_O_LINUX
+}
 
 RESOURCES += qml.qrc
 
-RC_ICONS = favicon.ico
+INCLUDEPATH += qglobalshortcut
 
-# Default rules for deployment.
-qnx: target.path = /tmp/$${TARGET}/bin
-else: unix:!android: target.path = /opt/$${TARGET}/bin
-!isEmpty(target.path): INSTALLS += target
+SOURCES += \
+        globalshortcutforward.cpp \
+        main.cpp \
+        qglobalshortcut/qglobalshortcut.cc \
+        tdlbackup.cpp
 
-DISTFILES += \
-    ../README.md
+win32:SOURCES += qglobalshortcut/qglobalshortcut_win.cc
+linux:SOURCES += qglobalshortcut/qglobalshortcut_x11.cc
+macx:SOURCES  += qglobalshortcut/sqglobalshortcut_macx.cc
+
+HEADERS += \
+    globalshortcutforward.h \
+    qglobalshortcut/qglobalshortcut.h \
+    tdlbackup.h
+
+isEmpty(BINDIR):BINDIR=/usr/bin
+isEmpty(APPDIR):APPDIR=/usr/share/applications
+isEmpty(DSRDIR):DSRDIR=/usr/share/simtdl
+
+target.path = $$INSTROOT$$BINDIR
+icon_files.path = $$PREFIX/share/icons/hicolor/scalable/apps/
+icon_files.files = $$PWD/favicon.ico
+
+desktop.path = $$INSTROOT$$APPDIR
+desktop.files = simtdl.desktop
+
+INSTALLS += target desktop icon_files
+
