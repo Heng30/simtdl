@@ -197,9 +197,27 @@ Window {
                     model: listmodel
                     delegate: tdlDelegate
                     highlight: HighlightBar {}
-                    highlightMoveDuration: 1000
-                    highlightMoveVelocity: -1
+                    highlightMoveDuration: -1
+                    highlightMoveVelocity: 300
                     highlightFollowsCurrentItem: true
+
+                    populate: Transition {
+                        NumberAnimation {
+                            property: "opacity"
+                            from: 0
+                            to: 1
+                            duration: 1000
+                        }
+                    }
+
+                    remove: Transition {
+                        NumberAnimation {
+                            property: "opacity"
+                            from: 1
+                            to: 0
+                            duration: 1000
+                        }
+                    }
 
                     MouseArea {
                         anchors.fill: parent
@@ -251,12 +269,21 @@ Window {
                          }
 
                          Text {
+                             id: displayText
                              anchors.fill: parent
                              padding: 10
                              font.pixelSize: 22
                              font.bold: true
                              wrapMode: Text.Wrap
                              text: tdItem
+                         }
+
+                         Rectangle {
+                             anchors.fill: parent
+                             z: displayText.z+1
+                             radius: parent.radius
+                             color: "gray"
+                             opacity: 0.3
                          }
                      }
                  }
@@ -289,17 +316,21 @@ Window {
                 }
             }
         }
-
-        Keys.onEscapePressed: {
-            mainWindow.hide()
-            mainWindow.requestActivate()
-        }
     }
 
     Connections {
         target: gsf
         function onCtrlAlt4T() {
             mainWindow.show()
+         }
+    }
+
+    Shortcut {
+         sequence: "Esc"
+         context: Qt.ApplicationShortcut
+         onActivated: {
+             mainWindow.hide()
+             mainWindow.requestActivate()
          }
     }
 
@@ -364,7 +395,8 @@ Window {
     function finish() {
         var index = listView.currentIndex
         if (index <= 0) return // padding item can't be deleted
-        listmodel.set(index, { "isFinish": true } )
+        var item = listmodel.get(index);
+        listmodel.set(index, { "isFinish": !item.isFinish } )
         backuptdl()
     }
 
@@ -379,17 +411,20 @@ Window {
         }
 
         var text = '<h1>simtdl v1.0.0</h1>'
-        text += '<br><br>'
+        text += '<br>'
+        text += '<br>'
         text += '<b>'
         text += '<p>Author: Heng</p>'
-        text += '<p></p>'
+        text += '<br>'
         text += '<p>Blog: heng30.space</p>'
-        text += '<p></p>'
+        text += '<br>'
         text += '<p>Email: 2238288979@qq.com</P>'
-        text += '<p></p>'
+        text += '<br>'
         text += '<p>Github: github.com/Heng30/simtdl</p>'
-        text += '<p></p>'
+        text += '<br>'
         text += '<p>Dogecoin: D8Ng7dd7uT3fQ3eD33biyRfiULntb6CTu3</p>'
+        text += '<br>'
+        text += '<p>Dogecoin(BEP20): 0x0299D3B3479cdBd7Ced235dBAB58D3a72De81169</p>'
         text += '</b>'
         aboutInfo.text = text
     }
