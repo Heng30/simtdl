@@ -30,13 +30,15 @@ Window {
 
             id: toolbar
             anchors.top: mainWindow.top
+            anchors.left: mainWindow.left
+            anchors.right: mainWindow.right
             anchors.topMargin: 10
             width: parent.width
             height: 50
             radius: 10
             color: "lightyellow"
 
-            RowLayout {
+            Row {
                 id: icons
                 anchors.fill: parent
                 opacity: 0.8
@@ -196,7 +198,7 @@ Window {
                     spacing: 10
                     model: listmodel
                     delegate: tdlDelegate
-                    highlight: HighlightBar {}
+                    highlight: highlightBar
                     highlightMoveDuration: -1
                     highlightMoveVelocity: 300
                     highlightFollowsCurrentItem: true
@@ -218,11 +220,6 @@ Window {
                             duration: 1000
                         }
                     }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: moveHightlightBar(mouseX, mouseY)
-                    }
                 }
 
                 ListModel {
@@ -236,18 +233,21 @@ Window {
                     }
                 }
 
-                component HighlightBar: Rectangle {
-                    x: listView.currentItem.x
-                    y: listView.currentItem.y
-                    z: listView.currentItem.z+1
-                    width: listView.currentItem.width
-                    height: listView.currentItem.height
-                    radius: listView.currentItem.radius
-                    border.width: 3
-                    border.color: "black"
-                    color: "transparent"
-                    opacity: 0.8
-                 }
+                Component {
+                    id: highlightBar
+                    Rectangle {
+                        x: listView.currentItem.x
+                        y: listView.currentItem.y
+                        z: listView.currentItem.z+1
+                        width: listView.currentItem.width
+                        height: listView.currentItem.height
+                        radius: listView.currentItem.radius
+                        border.width: 3
+                        border.color: "black"
+                        color: "transparent"
+                        opacity: 0.8
+                    }
+                }
 
                 Component {
                      id: tdlDelegate
@@ -285,6 +285,11 @@ Window {
                              color: "gray"
                              opacity: 0.3
                          }
+
+                         MouseArea {
+                             anchors.fill: parent
+                             onClicked: moveHightlightBar(displayText.text)
+                         }
                      }
                  }
             }
@@ -320,9 +325,7 @@ Window {
 
     Connections {
         target: gsf
-        function onCtrlAlt4T() {
-            mainWindow.show()
-         }
+        onCtrlAlt4T: mainWindow.show()
     }
 
     Shortcut {
@@ -429,9 +432,14 @@ Window {
         aboutInfo.text = text
     }
 
-    function moveHightlightBar(x, y) {
-        var index =  listView.indexAt(x, y)
-        if (index < 0) return
+    function moveHightlightBar(text) {
+        var index =  0
+        for ( ; index < listmodel.count; index++) {
+            var item = listmodel.get(index)
+            if (item.tdItem === text) break;
+        }
+
+        if (index === listmodel.count) index = 0
         listView.currentIndex = index
     }
 
