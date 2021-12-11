@@ -1,7 +1,7 @@
-QT += quick xml core gui widgets
+QT += quick core
 
 TARGET = simtdl
-CONFIG += c++11
+CONFIG += c++17
 RC_ICONS = favicon.ico
 
 window {
